@@ -1,75 +1,106 @@
-# Variables globales para estadísticas (Acumuladores y Contadores)
-recaudacion_total = 0.0
-contador_pedidos = 0
-
-def mostrar_menu_principal():
-    print("\n--- 🍔 ROTISERÍA UTN - SISTEMA DE PEDIDOS 🍔 ---")
-    print("1. Realizar Nuevo Pedido")
-    print("2. Ver Estadísticas del Día")
-    print("3. Salir")
-
-def mostrar_productos():
-    print("\n--- MENÚ DE PRODUCTOS ---")
-    print("1. Hamburguesa Completa - $4500")
-    print("2. Pizza Mozzarella    - $5000")
-    print("3. Gaseosa 500ml       - $1200")
-
 def realizar_pedido():
     global recaudacion_total, contador_pedidos
+    global cant_hamburguesas, cant_pizzas, cant_bebidas
     
-    mostrar_productos()
-    opcion_producto = input("Seleccione el producto (1-3): ")
-    cantidad = int(input("Ingrese la cantidad: ")) # <- Ojo: Esto puede fallar si meten texto
+    mostrar_categorias()
     
-    precio = 0
-    nombre_prod = ""
-    
-    if opcion_producto == "1":
-        precio = 4500
-        nombre_prod = "Hamburguesa"
-    elif opcion_producto == "2":
-        precio = 5000
-        nombre_prod = "Pizza"
-    elif opcion_producto == "3":
-        precio = 1200
-        nombre_prod = "Gaseosa"
-    else:
-        print("Producto no válido.")
-        return
-
-    subtotal = precio * cantidad
-    print(f"\nPedido registrado: {cantidad}x {nombre_prod} - Subtotal: ${subtotal}")
-    
-    # Aplicar descuento por apertura (Promoción)
-    if subtotal > 10000:
-        print("¡PROMO! Descuento del 10% aplicado por superar los $10000.")
-        subtotal = subtotal * 0.9
-        print(f"Nuevo Total con descuento: ${subtotal}")
-        
-    # Actualizar estadísticas
-    recaudacion_total += subtotal
-    contador_pedidos += 1
-    print("¡Pedido confirmado con éxito!")
-
-def mostrar_estadisticas():
-    print("\n=== 📊 ESTADÍSTICAS DIARIAS ===")
-    print(f"Cantidad total de pedidos: {contador_pedidos}")
-    print(f"Recaudación total: ${recaudacion_total:.2f}")
-
-def main():
+    # =========================================================================
+    # 1. VALIDACIÓN DE CATEGORÍA (Estructura de control iterativa + Excepciones)
+    # =========================================================================
     while True:
-        mostrar_menu_principal()
-        opcion = input("Seleccione una opción: ")
+        try:
+            cat = int(input("Seleccione una categoría (1-3): "))
+            if 1 <= cat <= 3:
+                break  # Rompe el bucle si el número está dentro del rango válido
+            print("⚠️ Opción inválida. El número debe estar entre 1 y 3.")
+        except ValueError:
+            # Captura el error si el operador ingresa letras, símbolos o vacíos
+            print("⚠️ Error crítico: Entrada no válida. Debe ingresar obligatoriamente un número entero.")
+            
+    # --- MOSTRAR SUB-PRODUCTOS ---
+    print("\n--- PRODUCTOS DISPONIBLES ---")
+    if cat == 1:
+        print("1. Hamburguesa Simple   - $4000")
+        print("2. Hamburguesa Completa - $4800")
+    elif cat == 2:
+        print("1. Pizza Mozzarella    - $5000")
+        print("2. Pizza Especial      - $6200")
+    elif cat == 3:
+        print("1. Gaseosa 500ml       - $1200")
+        print("2. Agua Mineral        - $1000")
         
-        if opcion == "1":
-            realizar_pedido()
-        elif opcion == "2":
-            mostrar_estadisticas()
-        elif opcion == "3":
-            print("Cerrando caja diaria. ¡Hasta mañana!")
-            break
-        else:
-            print("Opción inválida. Intente de nuevo.")
+    # =========================================================================
+    # 2. VALIDACIÓN DE OPCIÓN DE PRODUCTO (opcion_producto)
+    # =========================================================================
+    while True:
+        try:
+            opcion_prod = int(input("Seleccione el producto deseado (1-2): "))
+            if 1 <= opcion_prod <= 2:
+                break  # Dato correcto, salimos del ciclo de validación
+            print("⚠️ Opción fuera de rango. Por favor, seleccione 1 o 2.")
+        except ValueError:
+            print("⚠️ Error crítico: No se permiten letras ni espacios. Ingrese un número (1 o 2).")
 
-if __name__ == "__main__":
-    main()S
+    # =========================================================================
+    # 3. VALIDACIÓN DE CANTIDAD (Debe ser entero mayor a cero)
+    # =========================================================================
+    while True:
+        try:
+            cantidad = int(input("Ingrese la cantidad de unidades: "))
+            if cantidad > 0:
+                break  # Cantidad lógica para un pedido gastronómico
+            print("⚠️ Operación inválida. La cantidad física debe ser un número positivo mayor a 0.")
+        except ValueError:
+            print("⚠️ Error crítico: La cantidad debe ser un número entero (ej: 1, 2, 5). No se acepta texto.")
+
+    # =========================================================================
+    # PROCESAMIENTO LOGÍSITICO (Lógica de negocio una vez que los datos son seguros)
+    # =========================================================================
+    nombre_producto, precio_unitario = obtener_datos_producto(cat, opcion_prod)
+    subtotal = precio_unitario * cantidad
+    
+    print(f"\n📝 Detalle: {cantidad}x {nombre_producto} (Precio Unit: ${precio_unitario})")
+    print(f"Subtotal Inicial: ${subtotal}")
+    
+    # Descuento por superar monto base
+    if subtotal > 12000:
+        descuento_promo = subtotal * 0.10
+        subtotal -= descuento_promo
+        print(f"🎉 ¡Descuento por Súper Compra (10%) aplicado!: -${descuento_promo}")
+
+    # Selección y validación del medio de pago
+    print("\n--- MEDIOS DE PAGO ---")
+    print("1. Efectivo / Transferencia (10% Descuento Adicional)")
+    print("2. Tarjeta de Crédito / Débito (Sin modificaciones)")
+    
+    while True:
+        try:
+            medio_pago = int(input("Seleccione medio de pago (1-2): "))
+            if 1 <= medio_pago <= 2:
+                break
+            print("⚠️ Opción inválida. Seleccione 1 o 2.")
+        except ValueError:
+            print("⚠️ Error crítico: Debe ingresar un número entero.")
+            
+    if medio_pago == 1:
+        descuento_pago = subtotal * 0.10
+        subtotal -= descuento_pago
+        print(f"💵 Descuento por pago en Efectivo (10%): -${descuento_pago}")
+
+    print(f"💰 IMPORTE TOTAL A PAGAR: ${subtotal:.2f}")
+    
+    confirmar = input("\n¿Confirma el pedido? (S/N): ").upper()
+    if confirmar == 'S':
+        recaudacion_total += subtotal
+        contador_pedidos += 1
+        
+        if cat == 1:
+            cant_hamburguesas += cantidad
+        elif cat == 2:
+            cant_pizzas += cantidad
+        elif cat == 3:
+            cant_bebidas += cantidad
+            
+        print("✅ ¡Pedido registrado con éxito!")
+    else:
+        print("❌ Pedido cancelado por el operador.")
